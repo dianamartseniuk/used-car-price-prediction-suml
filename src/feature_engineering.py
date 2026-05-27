@@ -76,12 +76,13 @@ def _extract_region(location: object) -> object:
         "Świętokrzyskie", "Warmińsko-mazurskie", "Wielkopolskie", "Zachodniopomorskie",
     }
     for part in parts:
-        if part in polish_regions:
-            return part
+        clean_part = part.replace(" (Polska)", "").strip()
+        if clean_part in polish_regions:
+            return clean_part
 
     if len(parts) >= 2:
-        return parts[1]
-    return parts[0] if parts else pd.NA
+        return parts[1].replace(" (Polska)", "").strip()
+    return parts[0].replace(" (Polska)", "").strip() if parts else np.nan
 
 
 class CarFeatureEngineer(BaseEstimator, TransformerMixin):
@@ -141,4 +142,4 @@ class CarFeatureEngineer(BaseEstimator, TransformerMixin):
             brand_model.isin(self.frequent_brand_models_), brand_model, "Other"
         )
 
-        return data[NUMERICAL_FEATURES + CATEGORICAL_FEATURES]
+        return data[NUMERICAL_FEATURES + CATEGORICAL_FEATURES].replace({pd.NA: np.nan})
