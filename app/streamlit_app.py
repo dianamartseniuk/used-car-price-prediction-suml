@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 
+import joblib
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -8,6 +9,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from app.car_options import load_car_options
+from src.config import MODEL_PATH
 
 
 st.set_page_config(
@@ -15,6 +17,26 @@ st.set_page_config(
     page_icon="🚗",
     layout="centered",
 )
+
+
+@st.cache_resource
+def load_model():
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"Model file was not found: {MODEL_PATH}")
+    return joblib.load(MODEL_PATH)
+
+
+def round_price(price: float) -> int:
+    return int(round(price / 100) * 100)
+
+
+def predict_price(car_data: dict) -> int:
+    import pandas as pd
+
+    model = load_model()
+    input_data = pd.DataFrame([car_data])
+    prediction = model.predict(input_data)[0]
+    return round_price(float(prediction))
 
 
 def render_home() -> None:
@@ -106,10 +128,37 @@ def render_car_form() -> tuple[dict, bool]:
     return car_data, submitted
 
 
+def render_prediction_result(car_data: dict) -> None:
+    try:
+        predicted_price = predict_price(car_data)
+    except FileNotFoundError:
+        st.error(
+            "The trained model file is missing. Please train the model first with "
+            "`python3 -m src.train_model`."
+        )
+        return
+    except Exception as error:
+        st.error("Prediction failed. Please check the entered car details and try again.")
+        with st.expander("Technical details"):
+            st.code(str(error))
+        return
+
+    st.success("Prediction ready")
+    st.metric("Estimated car price", f"{predicted_price:,.0f} PLN".replace(",", " "))
+    st.caption(
+        "This is an estimated price based on historical car offers from Poland. "
+        "Real sale prices can be different because of car condition, equipment, negotiation, and market changes."
+    )
+
+
 def main() -> None:
     render_home()
     st.divider()
-    render_car_form()
+    car_data, submitted = render_car_form()
+
+    if submitted:
+        st.divider()
+        render_prediction_result(car_data)
 
 
 if __name__ == "__main__":
