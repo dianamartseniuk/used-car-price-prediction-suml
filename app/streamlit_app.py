@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def load_model():
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model file was not found: {MODEL_PATH}")
@@ -64,19 +64,36 @@ def render_home() -> None:
         )
 
 
+def format_body_type(body_type: str) -> str:
+    labels = {
+        "station_wagon": "Station wagon",
+        "city_cars": "City car",
+        "small_cars": "Small car",
+        "compact": "Compact",
+        "sedan": "Sedan",
+        "SUV": "SUV",
+        "minivan": "Minivan",
+        "coupe": "Coupe",
+        "convertible": "Convertible",
+    }
+    return labels.get(body_type, str(body_type).replace("_", " ").title())
+
+
 def render_car_form() -> tuple[dict, bool]:
     options = load_car_options()
 
     st.header("Car details")
     st.caption("Choose values similar to a real Polish used car offer.")
 
+    default_brand_index = options["brands"].index("Toyota") if "Toyota" in options["brands"] else 0
+    brand = st.selectbox("Brand", options["brands"], index=default_brand_index)
+    model_options = options["brand_models"].get(brand, ["Other"])
+
     with st.form("car_prediction_form"):
         left, right = st.columns(2)
 
         with left:
-            brand = st.selectbox("Brand", options["brands"], index=options["brands"].index("Toyota") if "Toyota" in options["brands"] else 0)
-            model_options = options["brand_models"].get(brand, ["Other"])
-            model = st.selectbox("Model", model_options)
+            model = st.selectbox("Model", model_options, key=f"model_{brand}")
             production_year = st.number_input(
                 "Production year", min_value=1990, max_value=2027, value=2018, step=1
             )
@@ -88,7 +105,11 @@ def render_car_form() -> tuple[dict, bool]:
         with right:
             fuel_type = st.selectbox("Fuel type", options["fuel_types"])
             gearbox = st.selectbox("Gearbox", options["gearboxes"])
-            body_type = st.selectbox("Body type", options["body_types"])
+            body_type = st.selectbox(
+                "Body type",
+                options["body_types"],
+                format_func=format_body_type,
+            )
             engine_capacity_l = st.number_input(
                 "Engine capacity [liters]", min_value=0.5, max_value=8.5, value=1.6, step=0.1
             )
