@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 import sys
 
@@ -86,8 +87,17 @@ def render_car_form() -> tuple[dict, bool]:
     st.caption("Choose values similar to a real Polish used car offer.")
 
     default_brand_index = options["brands"].index("Toyota") if "Toyota" in options["brands"] else 0
-    brand = st.selectbox("Brand", options["brands"], index=default_brand_index)
+    top_left, top_right = st.columns(2)
+    with top_left:
+        brand = st.selectbox("Brand", options["brands"], index=default_brand_index)
+    with top_right:
+        condition = st.selectbox("Condition", options["conditions"])
+
     model_options = options["brand_models"].get(brand, ["Other"])
+    current_year = date.today().year
+    max_mileage = 999 if condition == "New" else 1_000_000
+    default_mileage = 100 if condition == "New" else 90_000
+    mileage_step = 50 if condition == "New" else 5_000
 
     with st.form("car_prediction_form"):
         left, right = st.columns(2)
@@ -95,12 +105,19 @@ def render_car_form() -> tuple[dict, bool]:
         with left:
             model = st.selectbox("Model", model_options, key=f"model_{brand}")
             production_year = st.number_input(
-                "Production year", min_value=1990, max_value=2027, value=2018, step=1
+                "Production year", min_value=1990, max_value=current_year, value=min(2018, current_year), step=1
             )
             mileage = st.number_input(
-                "Mileage [km]", min_value=0, max_value=1_000_000, value=90_000, step=5_000
+                "Mileage [km]",
+                min_value=0,
+                max_value=max_mileage,
+                value=default_mileage,
+                step=mileage_step,
+                key=f"mileage_{condition}",
+                help="For new cars the app allows less than 1000 km.",
             )
-            condition = st.selectbox("Condition", options["conditions"])
+            region = st.selectbox("Region", options["regions"])
+            drive = st.selectbox("Drive", options["drives"])
 
         with right:
             fuel_type = st.selectbox("Fuel type", options["fuel_types"])
@@ -116,12 +133,6 @@ def render_car_form() -> tuple[dict, bool]:
             engine_power = st.number_input(
                 "Engine power [HP]", min_value=20, max_value=1000, value=132, step=5
             )
-
-        details_left, details_right = st.columns(2)
-        with details_left:
-            region = st.selectbox("Region", options["regions"])
-            drive = st.selectbox("Drive", options["drives"])
-        with details_right:
             first_owner = st.checkbox("First owner", value=True)
             doors_number = st.selectbox("Doors", [3, 4, 5], index=2)
 
@@ -150,6 +161,10 @@ def render_car_form() -> tuple[dict, bool]:
 
 
 def render_prediction_result(car_data: dict) -> None:
+    if car_data["condition"] == "New" and car_data["mileage"] >= 1000:
+        st.warning("For a new car, mileage should be less than 1000 km.")
+        return
+
     try:
         predicted_price = predict_price(car_data)
     except FileNotFoundError:
