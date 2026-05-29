@@ -133,8 +133,6 @@ def render_car_form() -> tuple[dict, bool]:
             engine_power = st.number_input(
                 "Engine power [HP]", min_value=20, max_value=1000, value=132, step=5
             )
-            first_owner = st.checkbox("First owner", value=True)
-            doors_number = st.selectbox("Doors", [3, 4, 5], index=2)
 
         submitted = st.form_submit_button("Predict price", use_container_width=True)
 
@@ -150,10 +148,8 @@ def render_car_form() -> tuple[dict, bool]:
         "body_type": body_type,
         "drive": drive,
         "condition": condition,
-        "doors_number": int(doors_number),
         "colour": "gray",
         "origin_country": "Poland",
-        "first_owner": "Yes" if first_owner else None,
         "region": region,
     }
 
