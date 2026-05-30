@@ -72,8 +72,9 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           az acr login --name $(acrName)
-          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -f $(dockerfilePath) .
+          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -t $(containerRegistry)/$(imageRepository):latest -f $(dockerfilePath) .
           docker push $(containerRegistry)/$(imageRepository):$(tag)
+          docker push $(containerRegistry)/$(imageRepository):latest
 
 - stage: Deploy
   displayName: 'Deploy'
