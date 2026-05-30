@@ -7,7 +7,7 @@ variable "location" {
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
-  default     = "rg-usedcarprice-dev-we"
+  default     = "rg-usedcarprice-dev-plc"
 }
 
 variable "acr_name" {
