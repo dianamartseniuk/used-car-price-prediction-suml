@@ -1,7 +1,7 @@
 {
   "model_name": "RandomForestRegressor",
-  "MAE": 9341.113757791887,
-  "RMSE": 25394.948135354494,
+  "MAE": 9341.113757791885,
+  "RMSE": 25394.94813535449,
   "R2": 0.9119136774758438,
   "all_models": {
     "Ridge": {
@@ -10,8 +10,8 @@
       "R2": 0.8453212542138454
     },
     "RandomForestRegressor": {
-      "MAE": 9341.113757791887,
-      "RMSE": 25394.948135354494,
+      "MAE": 9341.113757791885,
+      "RMSE": 25394.94813535449,
       "R2": 0.9119136774758438
     },
     "GradientBoostingRegressor": {
@@ -67,5 +67,5 @@
     "brand_model"
   ],
   "used_sample_size": 60000,
-  "training_datetime": "2026-05-30T07:29:16"
+  "training_datetime": "2026-05-30T18:48:49"
 }

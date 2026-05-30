@@ -26,8 +26,6 @@ data/processed/*
 !data/processed/.gitkeep
 
 # Trained models and generated reports
-models/*.pkl
-models/*.joblib
 reports/figures/*
 !models/.gitkeep
 !reports/figures/.gitkeep

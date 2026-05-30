@@ -8,7 +8,7 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
 MODELS_DIR = PROJECT_ROOT / "models"
-MODEL_PATH = MODELS_DIR / "car_price_model.pkl"
+MODEL_PATH = MODELS_DIR / "car_price_model.joblib"
 METRICS_PATH = MODELS_DIR / "metrics.json"
 
 REPORTS_DIR = PROJECT_ROOT / "reports"
