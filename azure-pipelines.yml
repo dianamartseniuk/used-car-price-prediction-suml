@@ -1,5 +1,5 @@
 # Docker
-# Build a Docker image
+# Build and push an image to Azure Container Registry
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
@@ -9,21 +9,81 @@ resources:
 - repo: self
 
 variables:
+  azureSubscriptionConnection: 'CI/CD'
+  resourceGroupName: 'rg-usedcarprice-dev-plc'
+  acrName: 'acrusedcarpricedevpl'
+  containerRegistry: 'acrusedcarpricedevpl.azurecr.io'
+  containerAppName: 'ca-usedcarprice-dev-pl'
+  imageRepository: 'usedcarprice'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
-  displayName: Build image
+- stage: Infrastructure
+  displayName: 'Terraform'
   jobs:
-  - job: Build
-    displayName: Build
+  - job: Terraform
+    displayName: 'Provision Resources'
     pool:
       vmImage: ubuntu-latest
     steps:
-    - task: Docker@2
-      displayName: Build an image
+    - task: AzureCLI@2
+      displayName: 'Check Infrastructure'
+      name: checkInfra
       inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: |
-          $(tag)
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          $rgExists = az group exists --name "$(resourceGroupName)"
+          Write-Host "##vso[task.setvariable variable=rgExists;isOutput=true]$rgExists"
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Init & Apply'
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          Set-Location '$(System.DefaultWorkingDirectory)/terraform'
+          terraform init
+          terraform apply -auto-approve -var="resource_group_name=$(resourceGroupName)" -var="acr_name=$(acrName)" -var="container_app_name=$(containerAppName)"
+
+
+- stage: Build
+  displayName: 'Build & Push'
+  dependsOn: Infrastructure
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Build & Push Docker Image'
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az acr login --name $(acrName)
+          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -f $(dockerfilePath) .
+          docker push $(containerRegistry)/$(imageRepository):$(tag)
+
+- stage: Deploy
+  displayName: 'Deploy'
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureContainerApps@1
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        containerAppName: $(containerAppName)
+        resourceGroup: $(resourceGroupName)
+        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
+        targetPort: 8501
