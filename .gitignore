@@ -34,3 +34,9 @@ reports/figures/*
 
 # Logs
 *.log
+
+#Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
