@@ -32,7 +32,7 @@ stages:
       name: checkInfra
       inputs:
         azureSubscription: $(azureSubscriptionConnection)
-        scriptType: 'ps'
+        scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
           $rgExists = az group exists --name "$(resourceGroupName)"
@@ -42,7 +42,7 @@ stages:
       displayName: 'Terraform Init & Apply'
       inputs:
         azureSubscription: $(azureSubscriptionConnection)
-        scriptType: 'ps'
+        scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         addSpnToEnvironment: true
         inlineScript: |
@@ -64,7 +64,7 @@ stages:
       displayName: 'Build & Push Docker Image'
       inputs:
         azureSubscription: $(azureSubscriptionConnection)
-        scriptType: 'ps'
+        scriptType: 'pscore'
         scriptLocation: 'inlineScript'
         inlineScript: |
           az acr login --name $(acrName)
