@@ -1,3 +1,19 @@
+Created by:
+Diana Martseniuk
+Julia Zawadzka
+
+Link to app:  https://ca-usedcarprice-dev-pl.happysea-a9342bdf.polandcentral.azurecontainerapps.io
+
+Input:
+Finding data and topic - Diana Martseniuk
+Documentation - Diana Martseniuk
+ML models - Diana Martseniuk
+Streamlit - Diana Martseniuk
+Docker - Julia Zawadzka
+Cloud - Julia Zawadzka
+CI/CD - Julia Zawadzka
+Terraform - Julia Zawadzka
+
 # Used Car Price Prediction PL
 
 This is a student machine learning project for predicting used car prices in Poland. The problem is regression, because the model predicts a numeric price in PLN.
@@ -8,13 +24,6 @@ The model is prepared as a scikit-learn pipeline, so later it can be reused in a
 
 Dataset source: https://www.kaggle.com/datasets/bartoszpieniak/poland-cars-for-sale-dataset/data
 
-The CSV file should be placed manually in:
-
-```text
-data/raw/
-```
-
-Raw data files are not committed to Git because they can be large and they come from Kaggle.
 
 ## Technologies
 
@@ -105,7 +114,7 @@ Evaluation on the test split:
 The trained model is saved locally as:
 
 ```text
-models/car_price_model.pkl
+models/car_price_model.joblib
 ```
 
 The metrics are saved as:
@@ -114,49 +123,13 @@ The metrics are saved as:
 models/metrics.json
 ```
 
-## How to Run Locally
-
-Create and activate a virtual environment:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Put the Kaggle CSV file in:
-
-```text
-data/raw/
-```
-
-Train the model:
-
-```bash
-python3 -m src.train_model
-```
-
-Evaluate the saved model:
-
-```bash
-python3 -m src.evaluate_model
-```
-
-Run a sample prediction:
-
-```bash
-python3 -m src.predict
-```
-
 ## Project Structure
 
 ```text
-used_car_price_prediction_PL/
+used-car-price-prediction-suml/
+  app/
+  car_options.py
+  streamlit_app.py
   data/
     raw/
     processed/
@@ -177,26 +150,14 @@ used_car_price_prediction_PL/
   reports/
     figures/
   tests/
+  terraform/
+    main.tf
+    providers.rf 
+    variables.tf
   requirements.txt
   README.md
   .gitignore
+  .dockerignore
+  Dockerfile
+  azure-pipelines.yml
 ```
-
-## Git Notes
-
-Files that should be committed:
-
-- source code
-- notebook
-- README
-- `requirements.txt`
-- `models/metrics.json`
-
-Files that should not be committed:
-
-- raw Kaggle CSV files
-- processed generated data
-- virtual environment files
-- Python cache files
-- trained `.pkl` model files
-- generated plots
