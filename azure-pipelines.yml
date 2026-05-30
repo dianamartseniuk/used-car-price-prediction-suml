@@ -18,7 +18,7 @@ variables:
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
-  - stage: Build
+- stage: Build
   displayName: 'Build & Push'
   jobs:
   - job: Build
