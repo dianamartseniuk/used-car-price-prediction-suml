@@ -48,7 +48,7 @@ resource "azurerm_container_app" "app" {
     max_replicas = 3
     container {
       name   = "usedcarprice-container"
-      image = "acrusedcarpricedevpl.azurecr.io/usedcarprice:latest"
+      image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
