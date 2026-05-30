@@ -5,14 +5,14 @@ Julia Zawadzka
 Link to app:  https://ca-usedcarprice-dev-pl.happysea-a9342bdf.polandcentral.azurecontainerapps.io
 
 Input:
-Finding data and topic - Diana Martseniuk
-Documentation - Diana Martseniuk
-ML models - Diana Martseniuk
-Streamlit - Diana Martseniuk
-Docker - Julia Zawadzka
-Cloud - Julia Zawadzka
-CI/CD - Julia Zawadzka
-Terraform - Julia Zawadzka
+- Finding data and topic - Diana Martseniuk
+- Documentation - Diana Martseniuk
+- ML models - Diana Martseniuk
+- Streamlit - Diana Martseniuk
+- Docker - Julia Zawadzka
+- Cloud - Julia Zawadzka
+- CI/CD - Julia Zawadzka
+- Terraform - Julia Zawadzka
 
 # Used Car Price Prediction PL
 
