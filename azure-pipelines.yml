@@ -18,6 +18,7 @@ variables:
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
+stages:
 - stage: Build
   displayName: 'Build & Push'
   jobs:
@@ -69,7 +70,7 @@ variables:
 
 - stage: Deploy
   displayName: 'Deploy'
-  dependsOn: Build
+  dependsOn: Infrastructure
   jobs:
   - job: Deploy
     displayName: 'Deploy'
