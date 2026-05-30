@@ -25,5 +25,5 @@ variable "container_app_name" {
 variable "container_app_environment_name" {
   description = "The name of the Container App Environment"
   type        = string
-  default     = "cae-loanapp-dev-plc"
+  default     = "cae-usedcarprice-dev-pl"
 }
