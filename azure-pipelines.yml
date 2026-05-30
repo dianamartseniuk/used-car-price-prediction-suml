@@ -19,29 +19,8 @@ variables:
   tag: '$(Build.BuildId)'
 
 stages:
-- stage: Build
-  displayName: 'Build & Push'
-  jobs:
-  - job: Build
-    displayName: 'Build'
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - task: AzureCLI@2
-      displayName: 'Build & Push Docker Image'
-      inputs:
-        azureSubscription: $(azureSubscriptionConnection)
-        scriptType: 'pscore'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az acr login --name $(acrName)
-          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -t $(containerRegistry)/$(imageRepository):latest -f $(dockerfilePath) .
-          docker push $(containerRegistry)/$(imageRepository):$(tag)
-          docker push $(containerRegistry)/$(imageRepository):latest
-
 - stage: Infrastructure
   displayName: 'Terraform'
-  dependsOn: Build
   jobs:
   - job: Terraform
     displayName: 'Provision Resources'
@@ -68,12 +47,34 @@ stages:
             -var="acr_name=$(acrName)" `
             -var="container_app_name=$(containerAppName)"
 
-- stage: Deploy
-  displayName: 'Deploy'
+- stage: Build
+  displayName: 'Build & Push'
   dependsOn: Infrastructure
   jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Build & Push Docker Image'
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Rejestr został stworzony w poprzednim kroku, więc logowanie zadziała
+          az acr login --name $(acrName)
+          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -t $(containerRegistry)/$(imageRepository):latest -f $(dockerfilePath) .
+          docker push $(containerRegistry)/$(imageRepository):$(tag)
+          docker push $(containerRegistry)/$(imageRepository):latest
+
+- stage: Deploy
+  displayName: 'Deploy'
+  dependsOn: Build
+  jobs:
   - job: Deploy
-    displayName: 'Deploy'
+    displayName: 'Update Container App'
     pool:
       vmImage: ubuntu-latest
     steps:
