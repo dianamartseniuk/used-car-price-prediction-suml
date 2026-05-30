@@ -1,0 +1,87 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- deployment
+
+resources:
+- repo: self
+
+variables:
+  azureSubscriptionConnection: 'CI/CD'
+  resourceGroupName: 'rg-usedcarprice-dev-plc'
+  acrName: 'acrusedcarpricedevpl'
+  containerRegistry: 'acrusedcarpricedevpl.azurecr.io'
+  containerAppName: 'ca-usedcarprice-dev-pl'
+  imageRepository: 'usedcarprice'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Infrastructure
+  displayName: 'Terraform'
+  jobs:
+  - job: Terraform
+    displayName: 'Provision Resources'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: AzureCLI@2
+      displayName: 'Terraform Init & Apply'
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        addSpnToEnvironment: true
+        inlineScript: |
+          Set-Location '$(System.DefaultWorkingDirectory)/terraform'
+          terraform init
+          terraform apply -auto-approve `
+            -var="resource_group_name=$(resourceGroupName)" `
+            -var="acr_name=$(acrName)" `
+            -var="container_app_name=$(containerAppName)"
+
+- stage: Build
+  displayName: 'Build & Push'
+  dependsOn: Infrastructure
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Build & Push Docker Image'
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Rejestr został stworzony w poprzednim kroku, więc logowanie zadziała
+          az acr login --name $(acrName)
+          docker build -t $(containerRegistry)/$(imageRepository):$(tag) -t $(containerRegistry)/$(imageRepository):latest -f $(dockerfilePath) .
+          docker push $(containerRegistry)/$(imageRepository):$(tag)
+          docker push $(containerRegistry)/$(imageRepository):latest
+
+- stage: Deploy
+  displayName: 'Deploy'
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    displayName: 'Update Container App'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: AzureContainerApps@1
+      inputs:
+        azureSubscription: $(azureSubscriptionConnection)
+        containerAppName: $(containerAppName)
+        resourceGroup: $(resourceGroupName)
+        imageToDeploy: '$(containerRegistry)/$(imageRepository):$(tag)'
+        targetPort: 8501
