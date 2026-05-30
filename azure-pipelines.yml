@@ -27,6 +27,10 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+    - task: TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: 'latest'
     - task: AzureCLI@2
       displayName: 'Check Infrastructure'
       name: checkInfra
